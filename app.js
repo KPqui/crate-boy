@@ -2,7 +2,7 @@
    Audio is kept in the phone's own storage (IndexedDB) until it has reached the private inbox on GitHub.
    No legend or word lists live in this public code: they're loaded from the private repo after connecting. */
 "use strict";
-const APP_VERSION = "1.2";
+const APP_VERSION = "1.3";
 const CFG_KEY = "cb-cfg", LEG_KEY = "cb-legend";
 const PART_MS = +(localStorage.getItem("cb-part-ms") || 5 * 60 * 1000), SLICE_MS = 5000, MIN_NOTE_MS = 600;
 const $ = s => document.querySelector(s);
@@ -77,6 +77,7 @@ function meter(stream){
 let note = null;
 async function holdStart(e){
   e.preventDefault();
+  if (S.view !== "talk"){ show("talk"); return; }
   if (note || rec) return;
   try { await mic(); } catch(err){ toast("Microphone blocked. Allow it in the browser settings."); return; }
   const chunks = []; const mr = new MediaRecorder(S.stream, MIME ? { mimeType: MIME, audioBitsPerSecond: 48000 } : undefined);
