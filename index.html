@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0f380f">
+<title>Crate Boy Pocket</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root{--g0:#0f380f;--g1:#306230;--g2:#8bac0f;--g3:#9bbc0f;--berry:#8f1f4f;--px:ui-monospace,"Courier New",monospace}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--g3);color:var(--g0);font-family:var(--px)}
+body{display:flex;flex-direction:column;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+header{background:var(--g0);color:var(--g3);padding:12px 14px 8px;padding-top:max(12px,env(safe-area-inset-top));display:flex;align-items:baseline;gap:8px}
+header b{font-size:18px;letter-spacing:2px}
+header span{font-size:11px;opacity:.8;flex:1}
+header i{font-style:normal;font-size:11px}
+nav{display:flex;background:var(--g2);border-bottom:3px solid var(--g0)}
+nav button{flex:1;font:700 12px var(--px);padding:11px 2px;background:none;border:none;color:var(--g0);letter-spacing:1px}
+nav button.on{background:var(--g0);color:var(--g3)}
+main{flex:1;overflow:auto;padding:14px}
+.view{display:none}.view.on{display:block}
+.box{border:3px solid var(--g0);padding:12px;margin-bottom:12px;background:var(--g3);box-shadow:4px 4px 0 var(--g1)}
+h2{font-size:14px;margin:0 0 8px;letter-spacing:1px}
+p{margin:6px 0;font-size:14px;line-height:1.35}
+.btn{font:700 13px var(--px);padding:12px 14px;border:3px solid var(--g0);background:var(--g3);color:var(--g0);box-shadow:3px 3px 0 var(--g1)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--g1)}
+.btn.dark{background:var(--g0);color:var(--g3)}
+.btn.sm{font-size:11px;padding:7px 9px}
+.btn[disabled]{opacity:.4}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+input{font:15px var(--px);width:100%;padding:10px;border:3px solid var(--g0);background:#a8c816;color:var(--g0);margin:4px 0 8px}
+label{font-size:12px;font-weight:700}
+.talk{display:flex;flex-direction:column;align-items:center;gap:16px;padding:10px 0}
+#hold{width:min(70vw,280px);aspect-ratio:1;border-radius:50%;border:6px solid var(--g0);background:var(--berry);color:#fff;font:700 20px var(--px);
+  box-shadow:inset -10px -12px 0 #5d1233,6px 6px 0 var(--g1);touch-action:none;user-select:none;-webkit-user-select:none}
+#hold.rec{background:#e0204a;box-shadow:0 0 0 10px rgba(224,32,74,.35),inset -10px -12px 0 #8f1f4f;animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 22px rgba(224,32,74,.12),inset -10px -12px 0 #8f1f4f}}
+#hold-t{font-size:22px;font-weight:700;min-height:28px}
+.meter{height:12px;border:3px solid var(--g0);width:min(70vw,280px);background:var(--g3)}
+.meter i{display:block;height:100%;width:0;background:var(--g0)}
+.list .it{border:3px solid var(--g0);padding:8px;margin-bottom:8px;display:flex;gap:8px;align-items:center;font-size:13px}
+.it .k{font-weight:700;font-size:11px;min-width:42px}
+.it .m{flex:1;min-width:0}
+.it .s{font-size:11px;font-weight:700}
+.lg h3{font-size:12px;margin:12px 0 6px;letter-spacing:1px}
+.lg .l{display:flex;gap:10px;font-size:15px;padding:5px 0;border-bottom:2px solid var(--g2)}
+.lg .l b{width:26px;text-align:center;background:var(--g0);color:var(--g3)}
+.banner{background:var(--berry);color:#fff;padding:10px 12px;font-size:13px;font-weight:700;margin-bottom:12px}
+/* booth screen: dark, low light, legend always visible */
+#booth{position:fixed;inset:0;background:#000;color:#5a7a16;display:none;flex-direction:column;padding:16px;padding-top:max(16px,env(safe-area-inset-top));z-index:9}
+#booth.on{display:flex}
+#booth .top{display:flex;justify-content:space-between;align-items:center;font-size:13px}
+#booth .clock{font-size:52px;font-weight:700;text-align:center;margin:10px 0 2px;color:#7a9a20}
+#booth .rec{color:#a01030;font-weight:700}
+#booth .bl{flex:1;overflow:auto;margin:10px 0;font-size:15px;columns:2;column-gap:14px}
+#booth .bl div{break-inside:avoid;padding:2px 0}
+#booth .bl b{color:#7a9a20;display:inline-block;width:20px}
+#booth .bb{display:flex;gap:10px}
+#booth .bb button{flex:1;font:700 15px var(--px);padding:16px;background:#111;color:#7a9a20;border:2px solid #2a3a0a}
+#booth .bb button.stop{color:#c03050;border-color:#4a1020}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--g0);color:var(--g3);padding:10px 14px;font-size:13px;display:none;z-index:10;max-width:90%;text-align:center}
+.muted{opacity:.7}
+</style>
+</head>
+<body>
+<header><b>CRATE BOY</b><span>POCKET</span><i id="net">·</i></header>
+<nav id="tabs">
+  <button data-v="talk" class="on">TALK</button>
+  <button data-v="set">SET</button>
+  <button data-v="legend">LEGEND</button>
+  <button data-v="queue">SENT <span id="qn"></span></button>
+  <button data-v="setup">SETUP</button>
+</nav>
+<main>
+  <div id="resume"></div>
+
+  <section class="view on" id="v-talk">
+    <div class="talk">
+      <p class="muted" style="text-align:center">Hold, say the track name and what you hear, let go.</p>
+      <button id="hold">HOLD<br>TO TALK</button>
+      <div id="hold-t"></div>
+      <div class="meter"><i id="lvl"></i></div>
+    </div>
+    <div class="box"><h2>LAST NOTES</h2><div class="list" id="recent"></div></div>
+  </section>
+
+  <section class="view" id="v-set">
+    <div class="box">
+      <h2>RECORD A WHOLE SET</h2>
+      <p>Runs until you stop it. Saved on the phone every 5 seconds, sent in 5-minute parts. The screen stays on, dark, with your legend.</p>
+      <label>Name (optional)</label>
+      <input id="set-name" placeholder="e.g. home session">
+      <button class="btn dark" id="set-start" style="width:100%">● START SET</button>
+    </div>
+    <div class="box"><h2>SETS</h2><div class="list" id="sets"></div></div>
+  </section>
+
+  <section class="view lg" id="v-legend"><div class="box" id="legend"></div></section>
+
+  <section class="view" id="v-queue">
+    <div class="box">
+      <h2>SENT TO THE PC</h2>
+      <p class="muted">Everything goes to your private inbox on GitHub. Crate Boy on the PC picks it up and deletes it there.</p>
+      <div class="row"><button class="btn sm dark" id="send-now">SEND NOW</button><button class="btn sm" id="clear-sent">CLEAR SENT FROM PHONE</button></div>
+    </div>
+    <div class="list" id="queue"></div>
+  </section>
+
+  <section class="view" id="v-setup">
+    <div class="box">
+      <h2>CONNECT</h2>
+      <p>Your private data repo holds the legend and the inbox to the PC.</p>
+      <label>GitHub account</label><input id="s-owner" value="KPqui" autocapitalize="off">
+      <label>Private repo</label><input id="s-repo" value="crate-boy-data" autocapitalize="off">
+      <label>Token</label><input id="s-token" type="password" placeholder="github_pat_…" autocapitalize="off">
+      <button class="btn dark" id="s-save">SAVE &amp; TEST</button>
+      <p id="s-status"></p>
+    </div>
+    <div class="box"><h2>APP</h2><p id="s-ver"></p><p class="muted">Install: browser menu → "Add to home screen".</p></div>
+  </section>
+</main>
+
+<div id="booth">
+  <div class="top"><span class="rec" id="b-rec">● REC</span><span id="b-part"></span><span id="b-save"></span></div>
+  <div class="clock" id="b-clock">0:00:00</div>
+  <div class="bl" id="b-legend"></div>
+  <div class="bb"><button id="b-pause">PAUSE</button><button class="stop" id="b-stop">■ STOP SET</button></div>
+</div>
+<div id="toast"></div>
+<script src="app.js?v=1"></script>
+</body>
+</html>

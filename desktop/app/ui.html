@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CRATE BOY</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g0:#0f380f; --g1:#306230; --g2:#8bac0f; --g3:#9bbc0f;
+  --shell:#c9c4bb; --shell2:#b3ada3; --bezel:#565a6e; --berry:#8f1f4f; --ink:#2b2a6b;
+  --px:"Press Start 2P",ui-monospace,monospace; --vt:"VT323",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#1c1b21;
+  background-image:repeating-linear-gradient(45deg,#1f1e25 0 6px,#1c1b21 6px 12px);}
+body{display:flex;justify-content:center;align-items:flex-start;padding:12px;font-family:var(--vt);color:var(--g0);overflow:auto}
+button{font-family:var(--px);cursor:pointer}
+/* ---------- console shell ---------- */
+.shell{width:min(1140px,100%);background:linear-gradient(160deg,var(--shell),var(--shell2));
+  border-radius:18px 18px 90px 18px;padding:14px 26px 18px;box-shadow:inset -6px -8px 0 rgba(0,0,0,.12),inset 4px 4px 0 rgba(255,255,255,.35),0 10px 40px #000a}
+.topline{display:flex;justify-content:space-between;align-items:center;font-family:var(--px);font-size:9px;color:#6f6a62;padding:0 6px 8px;border-bottom:3px solid #b9b3a9;margin-bottom:10px}
+.topline b{color:var(--ink);letter-spacing:1px}
+.bezel{background:var(--bezel);border-radius:12px 12px 46px 12px;padding:16px 26px 18px 18px;position:relative}
+.bezel .lbl{font-family:var(--px);font-size:8px;color:#b6b8c8;letter-spacing:1px;margin:0 0 8px 34px;display:flex;gap:10px;align-items:center}
+.bezel .lbl i{flex:1;height:3px;background:repeating-linear-gradient(90deg,var(--berry) 0 40%,transparent 40% 50%,var(--ink) 50% 90%,transparent 90%);opacity:.8}
+.led{position:absolute;left:14px;top:60px;width:10px;height:10px;border-radius:50%;background:#3a1010}
+.led.on{background:#ff3048;box-shadow:0 0 8px #ff3048}
+.led+span{position:absolute;left:8px;top:76px;font-family:var(--px);font-size:6px;color:#9a9db0}
+.screen{margin-left:34px;background:var(--g3);height:600px;display:flex;flex-direction:column;
+  box-shadow:inset 0 0 0 3px var(--g1);image-rendering:pixelated;position:relative;overflow:hidden}
+.screen::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(15,56,15,.05) 0 1px,transparent 1px 3px)}
+/* ---------- tabs = crate dividers ---------- */
+.tabs{display:flex;gap:4px;padding:8px 8px 0;background:var(--g2);border-bottom:3px solid var(--g0)}
+.tab{font-family:var(--px);font-size:11px;padding:9px 14px 7px;background:var(--g3);color:var(--g1);border:3px solid var(--g0);
+  border-bottom:none;position:relative;top:3px;clip-path:polygon(0 6px,6px 0,calc(100% - 6px) 0,100% 6px,100% 100%,0 100%)}
+.tab.on{background:var(--g0);color:var(--g3)}
+.tab small{font-size:7px;display:block;margin-top:4px;opacity:.8}
+.tabs .sp{flex:1}
+.hud{font-family:var(--px);font-size:8px;align-self:center;color:var(--g0);text-align:right;line-height:1.6}
+.view{flex:1;overflow:auto;padding:14px 16px;display:none;font-size:21px;line-height:1.05}
+.view.on{display:block}
+.view::-webkit-scrollbar{width:10px}.view::-webkit-scrollbar-thumb{background:var(--g1)}.view::-webkit-scrollbar-track{background:var(--g2)}
+h2{font-family:var(--px);font-size:12px;margin:0 0 10px;letter-spacing:1px}
+h3{font-family:var(--px);font-size:9px;margin:14px 0 6px;letter-spacing:1px}
+.box{border:3px solid var(--g0);padding:10px;background:var(--g3);box-shadow:4px 4px 0 var(--g1)}
+.inv{background:var(--g0);color:var(--g3)}
+.row{display:flex;gap:14px;align-items:flex-start}
+.col{flex:1;min-width:0}
+.btn{font-size:9px;padding:8px 10px;background:var(--g3);color:var(--g0);border:3px solid var(--g0);box-shadow:3px 3px 0 var(--g1)}
+.btn:hover{background:var(--g2)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--g1)}
+.btn.dark{background:var(--g0);color:var(--g3)}
+.btn.dark:hover{background:var(--g1)}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.btn.sm{font-size:7px;padding:5px 6px}
+.muted{color:var(--g1)}
+.bar{height:14px;border:3px solid var(--g0);background:var(--g3);position:relative}
+.bar>i{position:absolute;inset:0 auto 0 0;background:repeating-linear-gradient(90deg,var(--g0) 0 8px,var(--g1) 8px 10px)}
+.kv{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-size:20px}
+.pill{font-family:var(--px);font-size:7px;border:2px solid var(--g0);padding:3px 5px;display:inline-block}
+input,textarea,select{font-family:var(--vt);font-size:20px;color:var(--g0);background:var(--g3);border:3px solid var(--g0);padding:4px 8px;outline:none}
+input:focus,textarea:focus{background:#a8c816}
+textarea{width:100%;resize:vertical}
+/* ---------- files / lists ---------- */
+.list{display:flex;flex-direction:column;gap:6px}
+.item{display:flex;gap:10px;align-items:center;border:3px solid var(--g0);padding:6px 8px;background:var(--g3)}
+.item .ic{font-family:var(--px);font-size:12px;width:22px;text-align:center}
+.item .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drop{border:3px dashed var(--g0);padding:18px;text-align:center;font-family:var(--px);font-size:10px;line-height:1.8;background:repeating-linear-gradient(45deg,var(--g3) 0 10px,#94b50f 10px 20px)}
+body.dragging .screen{outline:6px dashed var(--g2);outline-offset:-10px}
+.seg{display:inline-flex;border:3px solid var(--g0)}
+.seg button{font-size:8px;padding:6px 8px;border:none;background:var(--g3);color:var(--g0)}
+.seg button.on{background:var(--g0);color:var(--g3)}
+/* ---------- sort card ---------- */
+.dots{display:flex;flex-wrap:wrap;gap:3px;margin:6px 0 10px}
+.dot{width:12px;height:12px;border:2px solid var(--g0);background:var(--g3);cursor:pointer}
+.dot.keep{background:var(--g0)}.dot.skip{background:repeating-linear-gradient(45deg,var(--g3) 0 2px,var(--g0) 2px 4px)}
+.dot.pending{background:var(--g2)}.dot.cur{outline:3px solid var(--berry);outline-offset:1px}
+.dot.exp{opacity:.35}
+.sleeve{width:100%;aspect-ratio:1/1;max-width:210px;border:3px solid var(--g0);background:var(--g2);position:relative;overflow:hidden;box-shadow:4px 4px 0 var(--g1)}
+.sleeve .rec{position:absolute;width:86%;aspect-ratio:1;border-radius:50%;left:30%;top:7%;
+  background:radial-gradient(circle,var(--g2) 0 9%,var(--g0) 9% 11%,var(--g1) 11% 26%,var(--g0) 26% 29%,
+  #1d4a1d 29% 40%,var(--g0) 40% 43%,#1d4a1d 43% 56%,var(--g0) 56% 59%,#1d4a1d 59% 72%,var(--g0) 72%);transition:left .35s}
+.sleeve .cover{position:absolute;inset:0 30% 0 0;background:var(--g3);border-right:3px solid var(--g0);padding:10px;display:flex;flex-direction:column;justify-content:space-between}
+.sleeve .cover b{font-family:var(--px);font-size:9px;line-height:1.5;word-break:break-word}
+.sleeve.spin .rec{left:12%;animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.holo .cover{background:linear-gradient(120deg,var(--g3),#c4e04a,var(--g3),#86b80f,var(--g3));background-size:300% 100%;animation:holo 3s linear infinite}
+@keyframes holo{to{background-position:300% 0}}
+.stars{display:flex;gap:4px;align-items:center}
+.star{width:30px;height:30px;cursor:pointer;background:none;border:none;padding:0}
+.star svg{width:100%;height:100%}
+.rar{font-family:var(--px);font-size:9px;margin-left:8px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:var(--px);font-size:10px;min-width:40px;padding:4px 3px 2px;border:3px solid var(--g0);background:var(--g3);color:var(--g0);text-align:center;cursor:pointer;line-height:1.3;user-select:none}
+.chip small{display:block;font-family:var(--vt);font-size:14px}
+.chip.on{background:var(--g0);color:var(--g3)}
+.chip.strong{background:var(--berry);color:#fff;border-color:var(--g0)}
+.chip.strong::after{content:"!";}
+.seq{display:flex;gap:4px;min-height:38px;align-items:center;padding:3px 6px;border:3px dashed var(--g1);flex-wrap:wrap}
+.seq .chip{min-width:34px}
+.tagline{font-family:var(--px);font-size:14px;padding:12px;background:var(--g0);color:var(--g3);letter-spacing:1px;min-height:44px;word-break:break-word}
+.said{font-size:18px;max-height:84px;overflow:auto;border-left:4px solid var(--g1);padding:2px 8px;background:#a6c51a}
+.cand{display:flex;gap:6px;align-items:center;padding:4px 6px;border:2px solid var(--g0);cursor:pointer;font-size:18px;background:var(--g3)}
+.cand:hover{background:var(--g2)}
+.cand .sc{font-family:var(--px);font-size:7px}
+.actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+#v-sort .actions{position:sticky;bottom:-14px;background:var(--g3);padding:8px 0 10px;border-top:3px solid var(--g0);z-index:2}
+#v-sort h3{margin:9px 0 5px}
+.keys{font-size:16px;color:var(--g1);margin-top:8px}
+/* ---------- controls ---------- */
+.controls{display:flex;align-items:center;justify-content:space-between;padding:16px 30px 4px 40px;position:relative}
+.logo{font-family:var(--px);font-style:italic;color:var(--ink);font-size:20px;letter-spacing:1px;position:absolute;left:50%;top:6px;transform:translateX(-50%) skew(-8deg);white-space:nowrap}
+.logo span{font-size:9px;color:var(--berry);vertical-align:middle;margin-left:6px}
+.dpad{width:96px;height:96px;position:relative;margin-top:16px}
+.dpad button{position:absolute;background:#2d2c33;border:none;width:32px;height:32px;color:#6a6975;font-size:12px;box-shadow:inset -3px -3px 0 #1a1a1f}
+.dpad .u{left:32px;top:0;border-radius:4px 4px 0 0}.dpad .d{left:32px;top:64px;border-radius:0 0 4px 4px}
+.dpad .l{left:0;top:32px;border-radius:4px 0 0 4px}.dpad .r{left:64px;top:32px;border-radius:0 4px 4px 0}
+.dpad .c{left:32px;top:32px;pointer-events:none}
+.ss{display:flex;gap:26px;margin-top:62px}
+.ss div{text-align:center;font-family:var(--px);font-size:7px;color:var(--ink)}
+.ss button{width:56px;height:14px;border-radius:8px;background:#8e8a92;border:none;transform:rotate(-24deg);box-shadow:inset -2px -2px 0 #6d6a72;margin-bottom:6px}
+.ab{display:flex;gap:18px;transform:rotate(-24deg);margin-top:14px}
+.ab div{text-align:center;font-family:var(--px);font-size:9px;color:var(--ink)}
+.ab button{width:56px;height:56px;border-radius:50%;background:var(--berry);border:none;color:#e9a6c2;font-size:14px;box-shadow:inset -4px -5px 0 #5d1233,2px 3px 0 #0003;margin-bottom:6px}
+.ab button:active,.ss button:active,.dpad button:active{filter:brightness(.8)}
+.grill{position:absolute;right:250px;bottom:-6px;display:flex;gap:8px;transform:rotate(-30deg)}
+.grill i{width:7px;height:52px;border-radius:4px;background:#9b968e;box-shadow:inset 2px 2px 0 #7d7972}
+/* ---------- overlays ---------- */
+.modal{position:absolute;inset:0;background:rgba(15,56,15,.85);display:none;align-items:center;justify-content:center;z-index:5}
+.modal.on{display:flex}
+.modal .box{width:min(760px,92%);max-height:90%;overflow:auto}
+.toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);font-family:var(--px);font-size:10px;padding:10px 14px;background:var(--g0);color:var(--g3);border:3px solid var(--g3);box-shadow:0 0 0 3px var(--g0);display:none;z-index:6;max-width:90%}
+.lvlup{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:var(--g0);color:var(--g3);font-family:var(--px);z-index:7;gap:18px;text-align:center}
+.lvlup.on{display:flex;animation:blink .25s steps(2) 4}
+@keyframes blink{50%{background:var(--g3);color:var(--g0)}}
+.hist{display:flex;align-items:flex-end;gap:6px;height:80px}
+.hist div{flex:1;background:var(--g0);min-height:3px;position:relative}
+.hist div span{position:absolute;bottom:-20px;left:0;right:0;text-align:center;font-family:var(--px);font-size:7px}
+.hist div em{position:absolute;top:-18px;left:0;right:0;text-align:center;font-style:normal;font-size:15px}
+table{border-collapse:collapse;width:100%;font-size:18px}
+td,th{border-bottom:2px solid var(--g2);padding:4px 6px;text-align:left;vertical-align:top}
+th{font-family:var(--px);font-size:7px}
+.mono{font-family:var(--px);font-size:9px}
+a{color:var(--g0)}
+input[type=checkbox],input[type=range]{accent-color:var(--g0)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topline"><span>◀ OFF · ON ▶</span><b>CRATE BOY · RATE · SORT · PERCEIVE</b><span><span id="ver"></span> · <span id="clock"></span></span></div>
+  <div class="bezel">
+    <div class="lbl">LO-FI CRATE DISPLAY <i></i> STEREO SELECTION</div>
+    <div class="led on" id="led"></div><span>BATTERY</span>
+    <div class="screen" id="screen">
+      <div class="tabs" id="tabs">
+        <button class="tab on" data-v="crate">CRATE<small>HOME</small></button>
+        <button class="tab" data-v="dig">DIG<small>INBOX</small></button>
+        <button class="tab" data-v="desk">DESK<small>MIC</small></button>
+        <button class="tab" data-v="sort">SORT<small>RATE</small></button>
+        <button class="tab" data-v="save">SAVE<small>EXPORT</small></button>
+        <button class="tab" data-v="check">CHECK<small>CLEANUP</small></button>
+        <div class="sp"></div>
+        <div class="hud" id="hud">LV 1 · CRATE ROOKIE<br>XP 0</div>
+      </div>
+
+      <!-- ===================== CRATE ===================== -->
+      <div class="view on" id="v-crate">
+        <div class="row">
+          <div class="col" style="flex:0 0 300px">
+            <div class="box">
+              <h2 id="p-title">CRATE ROOKIE</h2>
+              <div class="mono" id="p-lvl">LV 1</div>
+              <div class="bar" style="margin:10px 0"><i id="p-bar" style="width:0%"></i></div>
+              <div class="kv">
+                <span>XP</span><span></span><b id="p-xp">0</b>
+                <span>TODAY</span><span></span><b id="p-today">0</b>
+                <span>STREAK</span><span></span><b id="p-streak">0 DAYS</b>
+              </div>
+              <p class="muted" style="margin:10px 0 0;font-size:17px">1 XP per track you burn into Rekordbox. A new level every 25.</p>
+            </div>
+            <h3>NEXT QUESTS</h3>
+            <div class="list" id="quests"></div>
+          </div>
+          <div class="col">
+            <div class="box" id="crate-box"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DIG ===================== -->
+      <div class="view" id="v-dig">
+        <div class="row">
+          <div class="col">
+            <div class="drop" id="drop">DROP STUFF HERE<br><span style="font-size:8px">VOICE MEMO · NOTES .TXT · REKORDBOX COLLECTION .XML</span><br><span style="font-family:var(--vt);font-size:18px">or put it in the IN folder</span></div>
+            <h3>IN FOLDER <button class="btn sm" onclick="api('/api/open',{what:'in'})">OPEN</button></h3>
+            <div class="list" id="files"></div>
+            <h3>JOB</h3>
+            <div class="box" id="job"><span class="muted">Nothing running.</span></div>
+          </div>
+          <div class="col">
+            <h3 style="margin-top:0">PHONE LINK</h3>
+            <div class="box" id="link-box">
+              <div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">
+                <input id="lk-owner" placeholder="GitHub account" style="width:150px">
+                <input id="lk-repo" placeholder="crate-boy-data" style="width:170px">
+              </div>
+              <div class="row" style="gap:6px;align-items:center;margin-top:6px">
+                <input id="lk-token" type="password" placeholder="token (github_pat_…)" class="col">
+                <button class="btn sm dark" onclick="linkSave()">SAVE</button>
+                <button class="btn sm" onclick="linkSync()">SYNC NOW</button>
+              </div>
+              <div id="lk-status" style="margin-top:6px;font-size:18px"></div>
+              <div class="muted" style="font-size:16px;margin-top:4px">Phone app: <b>kpqui.github.io/crate-boy</b> · notes land in the DESK inbox, sets in SESSIONS.</div>
+            </div>
+            <h3>EARS</h3>
+            <div class="box">
+              <div style="margin-bottom:8px">MODEL&nbsp; <span class="seg" id="seg-model">
+                <button data-v="accurate" title="large-v3, converted by SYSTRAN (same publisher as the engine). Slower, most accurate.">ACCURATE</button>
+                <button data-v="turbo" title="large-v3-turbo, converted by Mobius Labs. Fast and good.">TURBO</button>
+                <button data-v="fast" title="small, by SYSTRAN. Fastest, makes more mistakes.">FAST</button></span></div>
+              <div>LANGUAGE&nbsp; <span class="seg" id="seg-lang">
+                <button data-v="en">EN</button><button data-v="de">DE</button><button data-v="auto">AUTO</button></span></div>
+            </div>
+            <h3>TYPE OR PASTE NOTES</h3>
+            <textarea id="paste" rows="4" placeholder="Next: track title. Four stars. Medium to high, driving, very hypnotic. Vocals. Opener. Genre: not bass."></textarea>
+            <div style="margin-top:6px"><button class="btn" onclick="fromText()">MAKE CARDS</button></div>
+            <h3>SESSIONS</h3>
+            <div class="list" id="sessions"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== DESK ===================== -->
+      <div class="view" id="v-desk">
+        <div class="row">
+          <div class="col" style="flex:0 0 380px">
+            <h2>DESK MIC</h2>
+            <div class="box" id="desk-setup"></div>
+            <h3>CHECKLIST</h3>
+            <div class="box" style="font-size:18px;line-height:1.1">
+              · Scarlett: mic in input 1, <b>48V</b> on if it's a condenser mic<br>
+              · Gain: talking normally should fill about half the meter<br>
+              · Crate Boy can stay in the background: the key works in any app<br>
+              · Talk freely. Corrections later are fine: "the one before was more like a four"<br>
+              · Notes land in the INBOX. Tick what belongs together (TODAY), then SORT SELECTED
+            </div>
+          </div>
+          <div class="col">
+            <div class="box inv" id="desk-big" style="text-align:center;padding:18px">
+              <div id="desk-lamp" style="font-family:var(--px);font-size:22px;margin-bottom:10px">OFF</div>
+              <div id="desk-hint" style="font-size:20px"></div>
+              <div class="bar" style="margin:14px 0 4px;border-color:var(--g3);background:var(--g0)"><i id="desk-meter" style="width:0%;background:repeating-linear-gradient(90deg,var(--g3) 0 8px,var(--g2) 8px 10px)"></i></div>
+              <div id="desk-db" class="mono" style="font-size:8px;min-height:12px;margin-bottom:4px"></div>
+              <div id="desk-warn" class="mono" style="font-size:8px;min-height:12px"></div>
+            </div>
+            <h3>NOTES INBOX <span class="muted" style="font-family:var(--vt);font-size:16px" id="desk-busy"></span></h3>
+            <div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">
+              <button class="btn sm" onclick="inSel('today')">TODAY</button>
+              <button class="btn sm" onclick="inSel('unused')">ALL NEW</button>
+              <button class="btn sm" onclick="inSel('none')">NONE</button>
+              <span style="flex:1"></span>
+              <button class="btn sm" onclick="inDelete()">DELETE</button>
+              <button class="btn sm dark" onclick="inSession()">SORT SELECTED ▶</button>
+            </div>
+            <div id="inbox" class="list" style="gap:4px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== SORT ===================== -->
+      <div class="view" id="v-sort">
+        <div id="sort-empty" class="box">No session open. Go to <b>DIG</b> and open one, or transcribe a recording.</div>
+        <div id="sort-main" style="display:none">
+          <div class="row" style="align-items:center">
+            <select id="sess-pick" style="max-width:340px"></select>
+            <span class="mono" id="card-pos"></span>
+            <span class="sp" style="flex:1"></span>
+            <button class="btn sm" onclick="copyClaude()" title="Copies the whole transcript plus your legend. Paste it into the Claude chat.">COPY FOR CLAUDE</button>
+            <button class="btn sm dark" onclick="openModal('m-claude')">PASTE FROM CLAUDE</button>
+          </div>
+          <div class="dots" id="dots"></div>
+          <div class="row">
+            <div style="flex:0 0 210px">
+              <div class="sleeve" id="sleeve"><div class="rec"></div><div class="cover" id="cover"></div></div>
+              <div id="matchbox" style="margin-top:10px"></div>
+            </div>
+            <div class="col">
+              <div class="said" id="said"></div>
+              <h3>RATING</h3>
+              <div class="stars" id="stars"></div>
+              <h3>ENERGY ARC <span class="muted" style="font-family:var(--vt);font-size:16px">click to add in order · click a placed one: + → ? → remove</span></h3>
+              <div class="row" style="gap:8px;align-items:center"><div class="chips" id="energy-add"></div><div class="seq col" id="energy-seq"></div>
+                <span class="seg"><button id="ej-arc" onclick="setJoin('-')" title="from ... to ... (in that order)">ARC -</button><button id="ej-both" onclick="setJoin('&')" title="has both at once / jumps, not in between (L&amp;P)">BOTH &amp;</button></span></div>
+              <h3>VIBE <span class="muted" style="font-family:var(--vt);font-size:16px">click: on → strong! → off</span></h3>
+              <div class="chips" id="vibe"></div>
+              <div class="row" style="gap:20px">
+                <div><h3>ELEMENTS</h3><div class="chips" id="elem"></div></div>
+                <div><h3>ROLE</h3><div class="chips" id="role"></div></div>
+              </div>
+              <h3>TAG</h3>
+              <div class="tagline" id="tagline"></div>
+              <h3>GENRE</h3>
+              <div class="row" style="align-items:center;gap:8px">
+                <input id="genre" class="col" placeholder="+Jungle; -Bass   or a full list   (empty = unchanged)">
+              </div>
+              <div class="muted" id="genre-prev" style="font-size:18px;margin-top:4px"></div>
+              <div class="actions">
+                <button class="btn" onclick="move(-1)">◀ PREV</button>
+                <button class="btn" onclick="setStatus('skip')" title="Delete key">B · SKIP</button>
+                <button class="btn" onclick="setStatus('pending')" title="Not in your crate yet: keep the tags for when you buy it">PENDING</button>
+                <button class="btn dark" onclick="setStatus('keep')" title="Enter">A · KEEP ▶</button>
+              </div>
+              <div class="keys">Keys: 0–5 stars · letters toggle tags (Shift = strong, Shift+P = P+) · Enter keep · Delete skip · ←/→ move</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== SAVE ===================== -->
+      <div class="view" id="v-save">
+        <div class="row">
+          <div class="col">
+            <h2>BURN TO REKORDBOX</h2>
+            <div class="box" id="save-sum"></div>
+            <h3>PRE-FLIGHT</h3>
+            <div class="box">
+              <label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" id="bk" style="width:22px;height:22px"> I made a Rekordbox backup today (File → Library → Backup Library)</label>
+              <label style="display:flex;gap:10px;align-items:center;cursor:pointer;margin-top:6px"><input type="checkbox" id="fresh" style="width:22px;height:22px"> The collection in IN is a fresh export (otherwise newer cues or edits get overwritten)</label>
+            </div>
+            <div style="margin-top:14px"><button class="btn dark" id="burn" onclick="burn()">BURN IMPORT FILE</button></div>
+            <div id="burn-res" style="margin-top:14px"></div>
+          </div>
+          <div class="col">
+            <h3 style="margin-top:0">HOW THE IMPORT WORKS</h3>
+            <div class="box" style="font-size:19px;line-height:1.15">
+              1. Rekordbox → Preferences → Advanced → Database → <b>rekordbox xml</b>: Imported Library = the crateboy_import file in OUT.<br><br>
+              2. Sidebar → <b>rekordbox xml</b> → Playlists → <b>Crate Boy …</b><br><br>
+              3. Select all tracks → right-click → <b>Import To Collection</b>.<br><br>
+              4. First time ever: do it with 2–3 tracks and check that cues, grid and key stayed. Only rating, comment and genre should change.
+            </div>
+            <h3>NOT IN YOUR CRATE YET</h3>
+            <div class="box" style="font-size:19px">Cards marked PENDING (or kept without a match) wait in the PENDING session. Every time you load a new collection export, Crate Boy looks for them again.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== CHECK ===================== -->
+      <div class="view" id="v-check">
+        <h2>CRATE CHECK</h2>
+        <div class="row" style="align-items:center;margin-bottom:10px">
+          <span class="seg" id="seg-check">
+            <button data-v="format" class="on">FORMAT</button><button data-v="incomplete">INCOMPLETE</button><button data-v="junk">JUNK COMMENTS</button></span>
+          <span class="sp" style="flex:1"></span>
+          <button class="btn sm" onclick="checkAll(true)">ALL</button>
+          <button class="btn sm" onclick="checkAll(false)">NONE</button>
+          <button class="btn sm" id="chk-cards" onclick="checkToCards()">MAKE CARDS</button>
+          <button class="btn sm dark" id="chk-fix" onclick="checkFix()">QUEUE FIXES</button>
+        </div>
+        <div class="muted" id="chk-help" style="font-size:18px;margin-bottom:8px"></div>
+        <div id="chk-list"></div>
+      </div>
+
+      <!-- modals -->
+      <div class="modal" id="m-claude"><div class="box">
+        <h2>PASTE FROM CLAUDE</h2>
+        <p style="margin:0 0 8px;font-size:19px">Paste Claude's whole answer. Crate Boy picks out the table and <b>rebuilds the cards of this session</b> from it: one card per track, add-ons and corrections already merged. Cards you already burned stay untouched.</p>
+        <textarea id="claude-in" rows="12"></textarea>
+        <div class="actions"><button class="btn" onclick="closeModal('m-claude')">CANCEL</button><button class="btn dark" onclick="pasteClaude()">APPLY</button></div>
+      </div></div>
+      <div class="toast" id="toast"></div>
+      <div class="lvlup" id="lvlup"><div style="font-size:26px">LEVEL UP!</div><div id="lvl-name" style="font-size:14px"></div><div style="font-size:9px">PRESS A</div></div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="logo">CRATE BOY<span>DIGGER EDITION</span></div>
+    <div class="dpad">
+      <button class="u" onclick="pad('up')">▲</button><button class="l" onclick="pad('left')">◀</button>
+      <button class="c"></button>
+      <button class="r" onclick="pad('right')">▶</button><button class="d" onclick="pad('down')">▼</button>
+    </div>
+    <div class="ss">
+      <div><button onclick="pad('select')"></button><br>SELECT</div>
+      <div><button onclick="pad('start')"></button><br>START</div>
+      <div><button id="snd" onclick="toggleSound()"></button><br><span id="snd-l">SOUND ON</span></div>
+    </div>
+    <div class="ab">
+      <div><button onclick="pad('b')">B</button><br>SKIP</div>
+      <div><button onclick="pad('a')">A</button><br>KEEP</div>
+    </div>
+    <div class="grill"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+</div>
+
+<script>
+/* ======================================================= data */
+const ENERGY="ALMHP", VIBE="WDIFUSCGQ@TY", ELEM="$XV", ROLE="OBRE";
+let SHORT={};   // from your private legend.json
+const RARITY=["UNRATED","BIN IT","B-SIDE","CLUB SAFE","WEAPON","HOLY GRAIL"];
+let S={}, LEG={}, sess=null, cur=0, view="crate", checkKind="format", checkData=null, lastLevel=null, sound=true, saveT=null;
+
+const $=id=>document.getElementById(id);
+async function api(url,body){
+  const o=body===undefined?{}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)};
+  const r=await fetch(url,o); const j=await r.json().catch(()=>({}));
+  if(!r.ok||j.error){toast(j.error||("Error "+r.status));throw new Error(j.error)}
+  return j;
+}
+function toast(t,ms=2600){const e=$("toast");e.textContent=t;e.style.display="block";clearTimeout(e._t);e._t=setTimeout(()=>e.style.display="none",ms)}
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+/* ======================================================= sound */
+let ac=null;
+function beep(seq){ if(!sound)return; try{ac=ac||new AudioContext();let t=ac.currentTime;
+  for(const [f,d,type] of seq){const o=ac.createOscillator(),g=ac.createGain();o.type=type||"square";o.frequency.value=f;
+   g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d);t+=d*.9}}catch(e){}}
+const SFX={keep:[[660,.07],[990,.1]],skip:[[330,.07],[220,.1]],tick:[[1200,.03]],pend:[[520,.07],[520,.07]],
+  lvl:[[523,.1],[659,.1],[784,.1],[1047,.25]],burn:[[392,.08],[523,.08],[659,.08],[784,.2]]};
+function toggleSound(){sound=!sound;$("snd-l").textContent=sound?"SOUND ON":"SOUND OFF";api("/api/settings",{sound}).catch(()=>{});beep(SFX.tick)}
+
+/* ======================================================= tabs / views */
+function show(v){view=v;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  document.querySelectorAll(".view").forEach(e=>e.classList.toggle("on",e.id==="v-"+v));
+  if(v==="dig")pollLink();
+  if(v==="check")loadCheck(); if(v==="save")renderSave(); if(v==="sort")renderSort(); if(v==="desk"){dkSetupKey="";pollDesk();loadInbox()}}
+$("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab");if(b){beep(SFX.tick);show(b.dataset.v)}});
+const ORDER=["crate","dig","desk","sort","save","check"];
+
+/* ======================================================= polling */
+async function poll(){
+  try{S=await api("/api/state");}catch(e){$("led").classList.remove("on");return}
+  $("led").classList.add("on"); LEG=S.legend||{}; SHORT=S.short||{};
+  $("ver").textContent="v"+(S.version||"?");
+  if(lastLevel===null){lastLevel=S.xp.level;sound=S.settings.sound!==false;$("snd-l").textContent=sound?"SOUND ON":"SOUND OFF"}
+  if(S.xp.level>lastLevel){lastLevel=S.xp.level;levelUp()}
+  renderHud();renderCrate();renderDig();if(view==="save")renderSave();
+}
+function renderHud(){const x=S.xp;$("hud").innerHTML=`LV ${x.level} · ${x.title}<br>XP ${x.xp} · TODAY ${x.today}`;
+  $("p-title").textContent=x.title;$("p-lvl").textContent="LV "+x.level+"  ·  "+x.into+"/"+x.need+" TO NEXT";
+  $("p-bar").style.width=(100*x.into/x.need)+"%";$("p-xp").textContent=x.xp;$("p-today").textContent=x.today;$("p-streak").textContent=x.streak+(x.streak===1?" DAY":" DAYS")}
+function pct(a,b){return b?Math.round(100*a/b):0}
+function renderCrate(){
+  const L=S.library, st=L.stats;
+  let h="";
+  if(!L.loaded){
+    h=`<h2>NO CRATE LOADED</h2>${L.error?`<p>${esc(L.error)}</p>`:""}
+    <p>Rekordbox → File → <b>Export Collection in xml format</b> → save it into the <b>IN</b> folder (or drop it on this window).</p>
+    <p class="muted">It stays on this PC. Crate Boy only reads it to find your tracks and builds a separate import file.</p>`;
+  }else{
+    const mx=Math.max(...st.stars,1);
+    h=`<h2>${esc(L.name)}</h2><div class="mono" style="margin-bottom:12px">${st.total.toLocaleString()} TRACKS IN THE CRATE</div>
+    <div class="kv">
+      <span>RATED</span><div class="bar"><i style="width:${pct(st.rated,st.total)}%"></i></div><b>${pct(st.rated,st.total)}%</b>
+      <span>TAGGED</span><div class="bar"><i style="width:${pct(st.tagged,st.total)}%"></i></div><b>${pct(st.tagged,st.total)}%</b>
+      <span>COMPLETE</span><div class="bar"><i style="width:${pct(st.complete,st.total)}%"></i></div><b>${pct(st.complete,st.total)}%</b>
+    </div>
+    <h3>STARS</h3><div class="hist" style="margin:22px 4px 30px">${st.stars.map((n,i)=>`<div style="height:${Math.max(3,70*n/mx)}px"><em>${n}</em><span>${i?i+"★":"–"}</span></div>`).join("")}</div>
+    <div class="kv">
+      <span>TAG TYPOS</span><span></span><b>${st.fix}</b>
+      <span>JUNK COMMENTS</span><span></span><b>${st.junk}</b>
+      <span>NO COMMENT</span><span></span><b>${st.empty}</b>
+    </div>
+    <p class="muted" style="font-size:17px;margin:10px 0 0">COMPLETE = has energy and vibe letters. Reload by exporting again into IN.</p>`;
+  }
+  $("crate-box").innerHTML=h;
+  const q=[]; const ses=S.sessions||[];
+  const open=ses.filter(s=>s.id!=="pending"&&s.done<s.n), ready=ses.reduce((a,s)=>a+(s.ready||0),0);
+  const pend=ses.find(s=>s.id==="pending");
+  if(S.job.state==="running"||S.job.state==="loading")q.push(["DIG","Listening… "+(S.job.progress||0)+"%","dig"]);
+  if(!S.legend_loaded)q.push(["LINK","Connect the phone link (DIG) so your legend loads","dig"]);
+  if(!L.loaded)q.push(["CRATE","Export your collection into IN","dig"]);
+  open.slice(0,3).forEach(s=>q.push(["SORT",`${s.n-s.done} cards waiting in ${s.name}`,"sort:"+s.id]));
+  if(ready)q.push(["SAVE",`Burn ${ready} kept tracks into Rekordbox`,"save"]);
+  if(pend&&pend.ready)q.push(["SORT",`${pend.ready} pending tracks are in your crate now`,"sort:pending"]);
+  if(L.loaded&&st.fix)q.push(["CHECK",`Fix ${st.fix} tag typos`,"check"]);
+  if(!q.length)q.push(["DIG","Play a set, talk to your phone, drop the memo in","dig"]);
+  $("quests").innerHTML=q.map(([k,t,go])=>`<div class="item" style="cursor:pointer" onclick="quest('${go}')"><span class="pill">${k}</span><span class="nm" style="white-space:normal">${esc(t)}</span><span>▶</span></div>`).join("");
+}
+function quest(go){beep(SFX.tick);if(go.startsWith("sort:")){openSession(go.slice(5));}else show(go)}
+
+/* ======================================================= dig */
+function setSeg(id,val){document.querySelectorAll("#"+id+" button").forEach(b=>b.classList.toggle("on",b.dataset.v===val))}
+document.querySelectorAll("#seg-model button").forEach(b=>b.onclick=()=>{setSeg("seg-model",b.dataset.v);api("/api/settings",{model:b.dataset.v}).then(()=>{});beep(SFX.tick)});
+document.querySelectorAll("#seg-lang button").forEach(b=>b.onclick=()=>{setSeg("seg-lang",b.dataset.v);api("/api/settings",{language:b.dataset.v}).then(()=>{});beep(SFX.tick)});
+function renderDig(){
+  setSeg("seg-model",S.settings.model);setSeg("seg-lang",S.settings.language);
+  const busy=S.job.state==="running"||S.job.state==="loading";
+  const ic={audio:"♪",notes:"✎",crate:"▤",xml:"▤",other:"·"};
+  $("files").innerHTML=(S.files.length?S.files:[{name:"(empty)",kind:"none"}]).map(f=>{
+    let act="";
+    if(f.kind==="audio")act=`<button class="btn sm dark" ${busy?"disabled":""} onclick="transcribe('${esc(f.name)}')">LISTEN</button>`;
+    else if(f.kind==="notes")act=`<button class="btn sm" onclick="fromFile('${esc(f.name)}')">MAKE CARDS</button>`;
+    else if(f.kind==="crate")act=`<span class="pill">LOADED</span>`;
+    else if(f.kind==="xml")act=`<span class="pill">OLDER XML</span>`;
+    return `<div class="item"><span class="ic">${ic[f.kind]||""}</span><span class="nm">${esc(f.name)}</span><span class="muted">${f.mb?f.mb+" MB":""}</span>${act}</div>`}).join("");
+  const j=S.job; let jh='<span class="muted">Nothing running.</span>';
+  if(j.state&&j.state!=="idle"){
+    jh=`<div class="mono" style="margin-bottom:8px">${esc((j.file||"").toUpperCase())}</div>
+    <div class="bar"><i style="width:${j.progress||0}%"></i></div><div style="margin-top:6px">${esc(j.msg||"")}</div>`;
+    if(j.state==="done"&&j.session)jh+=`<div style="margin-top:8px"><button class="btn dark" onclick="openSession('${j.session}')">SORT THEM ▶</button></div>`;
+    if(j.state==="error")jh+=`<div style="margin-top:8px" class="muted">If it keeps failing, start CrateBoy_debug.bat and screenshot the window for Claude.</div>`;
+    if(busy)jh+=`<div class="muted" style="margin-top:6px;font-size:17px">You can close the window: it keeps going and the cards show up in SESSIONS.</div>`;
+  }
+  $("job").innerHTML=jh;
+  $("sessions").innerHTML=(S.sessions.length?S.sessions:[]).map(s=>`<div class="item">
+    <span class="nm" title="${esc(s.name)}">${esc(s.name)} <span class="muted" style="font-size:15px">${esc((s.created||"").replace("T"," "))}</span></span><span class="muted">${s.done}/${s.n}</span>
+    ${s.ready?`<span class="pill">${s.ready} READY</span>`:""}
+    <button class="btn sm dark" onclick="openSession('${s.id}')">SORT</button>
+    <button class="btn sm" onclick="delSession('${s.id}')" title="Delete session">✕</button></div>`).join("")||'<span class="muted">No sessions yet.</span>';
+}
+async function transcribe(f){beep(SFX.keep);await api("/api/transcribe",{file:f});toast("Listening to "+f);poll()}
+async function fromFile(f){const s=await api("/api/session/from_file",{file:f});beep(SFX.keep);openSession(s.id)}
+async function fromText(){const t=$("paste").value.trim();if(!t)return toast("Type some notes first.");
+  const s=await api("/api/session/from_text",{text:t});$("paste").value="";beep(SFX.keep);openSession(s.id)}
+async function delSession(id){if(!confirm(id==="pending"?"Clear all pending cards?":"Delete this session? Burned tracks stay in Rekordbox."))return;
+  await api("/api/session/delete",{id});if(sess&&sess.id===id){sess=null;}poll()}
+
+/* phone link */
+let LK=null, lkFilled=false;
+async function pollLink(){try{LK=await api("/api/link")}catch(e){return}
+  if(!lkFilled){$("lk-owner").value=LK.owner||"KPqui";$("lk-repo").value=LK.repo||"crate-boy-data";
+    $("lk-token").placeholder=LK.has_token?"saved · paste a new one to replace":"token (github_pat_…)";lkFilled=true}
+  const st={off:"Not connected yet.",ok:"Connected ✓",error:"⚠ "+LK.msg}[LK.state]||LK.state;
+  $("lk-status").innerHTML=`${esc(st)}${LK.last?` · last check ${esc(LK.last)}`:""}${LK.pulled?` · ${LK.pulled} pulled`:""}${LK.busy||LK.queue?` · transcribing ${LK.busy+LK.queue}`:""}<br><span class="muted" style="font-size:16px">${LK.legend?"Legend loaded":"Legend not loaded yet"}</span>`}
+async function linkSave(){try{await api("/api/link/save",{owner:$("lk-owner").value,repo:$("lk-repo").value,token:$("lk-token").value});
+  $("lk-token").value="";lkFilled=false;toast("Phone link connected ✓");beep(SFX.keep);setTimeout(pollLink,1500);setTimeout(poll,4000)}catch(e){beep(SFX.skip)}}
+async function linkSync(){await api("/api/link/sync",{});toast("Checking the phone inbox…");setTimeout(pollLink,3000)}
+setInterval(()=>{if(view==="dig")pollLink()},4000);
+
+/* drag & drop anywhere */
+let dragN=0;
+addEventListener("dragenter",e=>{e.preventDefault();dragN++;document.body.classList.add("dragging")});
+addEventListener("dragleave",e=>{dragN--;if(dragN<=0)document.body.classList.remove("dragging")});
+addEventListener("dragover",e=>e.preventDefault());
+addEventListener("drop",async e=>{e.preventDefault();dragN=0;document.body.classList.remove("dragging");
+  for(const f of e.dataTransfer.files){toast("Copying "+f.name+" into IN…",60000);
+    await fetch("/api/upload?name="+encodeURIComponent(f.name),{method:"POST",body:f});}
+  toast("In the IN folder ✓");beep(SFX.keep);show("dig");poll()});
+
+/* ======================================================= sort */
+async function openSession(id){sess=await api("/api/session?id="+encodeURIComponent(id));
+  cur=Math.max(0,sess.cards.findIndex(c=>c.status==="new"&&!c.exported));if(cur<0)cur=0;show("sort")}
+function renderSessPick(){const ses=S.sessions||[];
+  $("sess-pick").innerHTML=ses.map(s=>`<option value="${s.id}" ${sess&&s.id===sess.id?"selected":""}>${esc(s.name)} (${s.done}/${s.n})</option>`).join("")}
+$("sess-pick").onchange=e=>openSession(e.target.value);
+function card(){return sess&&sess.cards[cur]}
+function fmtTags(t){const p=[];const both=t.ejoin==="+"||t.ejoin==="&";
+  if(t.energy.length)p.push((both?[...t.energy].sort((a,b)=>ENERGY.indexOf(a[0])-ENERGY.indexOf(b[0])):t.energy).map(([c,m])=>c+m).join(both?"&":"-"));
+  for(const [g,o] of [["vibe",VIBE],["elem",ELEM],["role",ROLE]]){const d=t[g];const s=[...o].filter(c=>c in d).map(c=>c+d[c]);if(s.length)p.push(s.join("-"))}
+  return p.join(" / ")}
+function starSvg(on){const c=on?"var(--g0)":"none";return `<svg viewBox="0 0 9 9" shape-rendering="crispEdges"><path d="M4 0h1v2h1v1h3v1h-1v1h-1v2h1v2h-1v-1h-1v-1h-1v1h-1v1h-1v1h-1v-2h1v-2h-1v-1h-1v-1h3v-1h1z" fill="${c}" stroke="var(--g0)" stroke-width=".6"/></svg>`}
+function renderSort(){
+  if(!sess){$("sort-empty").style.display="block";$("sort-main").style.display="none";return}
+  $("sort-empty").style.display="none";$("sort-main").style.display="block";renderSessPick();
+  const c=card(); if(!c){$("sort-main").innerHTML+="";return}
+  $("card-pos").textContent=`CARD ${cur+1}/${sess.cards.length}${c.exported?" · BURNED":""}${c.source==="claude"?" · BY CLAUDE":c.source==="draft"?" · DRAFT":""}`;
+  $("dots").innerHTML=sess.cards.map((x,i)=>`<div class="dot ${x.status} ${x.exported?"exp":""} ${i===cur?"cur":""}" title="${esc(x.title||x.text.slice(0,40))}" onclick="go(${i})"></div>`).join("");
+  // sleeve
+  const m=c.match; const r=c.rating??(m?m.rating:0);
+  $("sleeve").className="sleeve"+(c.status==="keep"?" spin":"")+(r===5?" holo":"");
+  $("cover").innerHTML=m?`<b>${esc(m.name)}</b><div style="font-size:17px">${esc(m.artist)}<br><span class="muted">${esc(m.album)}</span></div><div class="mono" style="font-size:7px">${esc(m.bpm?Math.round(m.bpm)+" BPM":"")} ${esc(m.key||"")}</div>`
+    :`<b>${esc(c.title||"???")}</b><div style="font-size:17px">${esc(c.artist||"")}</div><div class="mono" style="font-size:7px">NOT IN CRATE?</div>`;
+  let mb="";
+  if(m){mb=`<div class="mono" style="font-size:7px;margin-bottom:4px">IN YOUR CRATE NOW</div>
+    <div style="font-size:17px">★ ${m.rating||"–"} · ${esc(m.comment||"(no comment)")}<br><span class="muted">${esc(m.genre||"(no genre)")}</span></div>
+    <button class="btn sm" style="margin-top:6px" onclick="unmatch()">WRONG TRACK?</button>`;}
+  else{mb=`<input id="find" style="width:100%" value="${esc(c.title||"")}" placeholder="search your crate">
+    <div class="list" id="cands" style="margin-top:6px;gap:4px">${(c.cands||[]).map((k,i)=>candHtml(k,i)).join("")||'<span class="muted" style="font-size:17px">No match yet. Search, or mark PENDING if you don\'t own it yet.</span>'}</div>`}
+  $("matchbox").innerHTML=mb;
+  if(!m){const f=$("find");let tt=null;f.oninput=()=>{c.title=f.value;clearTimeout(tt);tt=setTimeout(()=>search(f.value),250);dirty()};}
+  $("said").innerHTML=(c.note?`<div class="inv" style="padding:2px 6px;margin-bottom:4px;font-size:17px">CLAUDE: ${esc(c.note)}</div>`:"")+((c.said&&c.said.length)?c.said.map(([t,x])=>`<span class="mono" style="font-size:7px">${esc(t)}</span> ${esc(x)}`).join("<br>"):`<span class="mono" style="font-size:7px">${esc(c.t||"")} YOU SAID</span><br>${esc(c.text)}`);
+  // stars
+  let sh="";for(let i=1;i<=5;i++)sh+=`<button class="star" onclick="setStars(${i})">${starSvg((c.rating||0)>=i)}</button>`;
+  sh+=`<span class="rar">${c.rating==null?"(unchanged)":RARITY[c.rating]}</span><button class="btn sm" style="margin-left:10px" onclick="setStars(null)">KEEP OLD</button>`;
+  $("stars").innerHTML=sh;
+  // energy
+  $("energy-add").innerHTML=[...ENERGY].map(l=>chip(l,"","addE('"+l+"')")).join("");
+  $("ej-arc").classList.toggle("on",(c.tags.ejoin||"-")==="-");$("ej-both").classList.toggle("on",c.tags.ejoin==="+"||c.tags.ejoin==="&");
+  $("energy-seq").innerHTML=c.tags.energy.map(([l,mo],i)=>`<div class="chip on" onclick="cycE(${i})" title="${esc(LEG[l]||"")}">${esc(l+mo)}</div>`).join("")||'<span class="muted" style="font-size:17px">no energy yet</span>';
+  for(const [g,o] of [["vibe",VIBE],["elem",ELEM],["role",ROLE]])
+    $(g).innerHTML=[...o].map(l=>{const st=c.tags[g][l];return chip(l,st===undefined?"":st==="!"?"strong":"on",`cyc('${g}','${l}')`)}).join("");
+  $("tagline").textContent=fmtTags(c.tags)||"(no tags = comment unchanged)";
+  $("genre").value=c.genre_spec||"";
+  genrePrev();
+}
+function chip(l,cls,on){return `<div class="chip ${cls}" onclick="${on}" title="${esc(LEG[l]||"")}">${esc(l)}<small>${esc(SHORT[l]||"")}</small></div>`}
+function candHtml(k,i){return `<div class="cand" onclick="pick(${i})"><span class="sc">${Math.round(k.score*100)}</span><span class="nm" style="flex:1">${esc(k.artist)} – ${esc(k.name)}<br><span class="muted" style="font-size:15px">${esc(k.album)} · ★${k.rating||"–"}</span></span></div>`}
+async function search(q){const c=card();c.cands=await api("/api/search?q="+encodeURIComponent(q));
+  $("cands").innerHTML=c.cands.map((k,i)=>candHtml(k,i)).join("")||'<span class="muted" style="font-size:17px">Nothing found.</span>'}
+function pick(i){const c=card();c.match=c.cands[i];beep(SFX.tick);dirty();renderSort()}
+function unmatch(){const c=card();c.match=null;dirty();renderSort();search(c.title||"")}
+function go(i){cur=i;beep(SFX.tick);renderSort()}
+function move(d){if(!sess)return;cur=(cur+d+sess.cards.length)%sess.cards.length;beep(SFX.tick);renderSort()}
+function setStars(n){const c=card();c.rating=(n!==null&&c.rating===n&&n===1)?0:n;beep(SFX.tick);dirty();renderSort()}
+function addE(l){const c=card();if(c.tags.energy.some(x=>x[0]===l))return;c.tags.energy.push([l,""]);beep(SFX.tick);dirty();renderSort()}
+function cycE(i){const c=card(),e=c.tags.energy[i];const n={"":"+","+":"?","?":null}[e[1]];
+  if(n===null||n===undefined)c.tags.energy.splice(i,1);else e[1]=n;beep(SFX.tick);dirty();renderSort()}
+function setJoin(j){card().tags.ejoin=j;beep(SFX.tick);dirty();renderSort()}
+function cyc(g,l){const d=card().tags[g];if(!(l in d))d[l]="";else if(d[l]==="")d[l]="!";else delete d[l];beep(SFX.tick);dirty();renderSort()}
+$("genre").oninput=()=>{card().genre_spec=$("genre").value;genrePrev();dirty()};
+function applyGenre(cur,spec){spec=(spec||"").trim();if(!spec)return cur||"";if(!"+-".includes(spec[0]))return spec;
+  let g=(cur||"").split(",").map(x=>x.trim()).filter(Boolean);const n=s=>s.toLowerCase().replace(/[^\w ]/g," ").replace(/\s+/g," ").trim();
+  for(const op of spec.split(";").map(x=>x.trim()).filter(Boolean)){const nm=op.slice(1).trim();
+    if(op[0]==="-")g=g.filter(x=>n(x)!==n(nm)&&!n(x).split(" ").includes(n(nm)));else if(!g.some(x=>n(x)===n(nm)))g.push(nm)}
+  return g.join(", ")}
+function genrePrev(){const c=card(),m=c.match;$("genre-prev").textContent=m?`now: ${m.genre||"–"}  →  ${applyGenre(m.genre,c.genre_spec)||"–"}`:(c.genre_spec?"applied when the track is matched":"")}
+function setStatus(st){const c=card();if(!c)return;
+  if(st==="keep"&&!c.match){toast("No track matched: search for it, or press PENDING.");beep(SFX.skip);return}
+  c.status=st;beep(st==="keep"?SFX.keep:st==="skip"?SFX.skip:SFX.pend);dirty();
+  const nx=sess.cards.findIndex((x,i)=>i>cur&&x.status==="new"&&!x.exported);
+  if(nx>=0)cur=nx;else if(cur<sess.cards.length-1)cur++;else toast("End of the session. Burn the kept ones in SAVE.");
+  renderSort()}
+function dirty(){clearTimeout(saveT);saveT=setTimeout(()=>api("/api/session/save",{session:sess}).then(poll).catch(()=>{}),400)}
+async function copyClaude(){const j=await api("/api/prompt?id="+encodeURIComponent(sess.id));
+  try{await navigator.clipboard.writeText(j.text);toast("Copied. Paste it into the Claude chat.")}
+  catch(e){$("claude-in").value=j.text;openModal("m-claude");toast("Copy the text from the box manually.")}}
+async function pasteClaude(){const r=await api("/api/session/claude",{id:sess.id,text:$("claude-in").value});
+  sess=r.session;cur=0;closeModal("m-claude");$("claude-in").value="";toast(r.rebuilt?`${r.updated} tracks from Claude`:`${r.updated} cards updated by Claude`);beep(SFX.keep);renderSort()}
+function openModal(id){$(id).classList.add("on")}function closeModal(id){$(id).classList.remove("on")}
+
+/* ======================================================= save */
+function renderSave(){const ses=S.sessions||[];const ready=ses.reduce((a,s)=>a+(s.ready||0),0),pend=ses.reduce((a,s)=>a+(s.topend||0),0);
+  $("save-sum").innerHTML=`<div class="kv"><span>READY TO BURN</span><span></span><b>${ready}</b>
+    <span>→ PENDING (NOT IN CRATE)</span><span></span><b>${pend}</b>
+    <span>QUEUED TAG FIXES</span><span></span><b>${queuedFixes.length}</b></div>
+    ${S.library.loaded?"":'<p>Load your collection first (CRATE).</p>'}`;
+  $("burn").disabled=!(S.library.loaded&&(ready||pend||queuedFixes.length))}
+let queuedFixes=[];
+async function burn(){if(!$("bk").checked||!$("fresh").checked){toast("Tick both pre-flight boxes first.");beep(SFX.skip);return}
+  const r=await api("/api/export",{fixes:queuedFixes});queuedFixes=[];beep(SFX.burn);
+  $("burn-res").innerHTML=r.n||r.pending?`<div class="box inv"><div class="mono">BURNED ✓</div><p style="margin:8px 0">${r.n} tracks → <b>${esc(r.file||"–")}</b><br>${r.pending} cards moved to PENDING</p>
+   <button class="btn" onclick="api('/api/open',{what:'out'})">OPEN OUT FOLDER</button></div>`:'<div class="box">Nothing to burn.</div>';
+  if(sess)sess=await api("/api/session?id="+encodeURIComponent(sess.id)).catch(()=>null);poll()}
+
+/* ======================================================= check */
+document.querySelectorAll("#seg-check button").forEach(b=>b.onclick=()=>{checkKind=b.dataset.v;setSeg("seg-check",checkKind);renderCheck()});
+async function loadCheck(){checkData=await api("/api/check");renderCheck()}
+function renderCheck(){
+  if(!checkData||!checkData.stats){$("chk-list").innerHTML='<div class="box">Load your collection first.</div>';return}
+  const items=checkData.issues.filter(i=>i.kind===checkKind);
+  const help={format:"Tags with typos or letters out of legend order. QUEUE FIXES rewrites them in clean form (rating and genre untouched). They disappear from this list after you import and export your collection again.",
+    incomplete:"Tagged, but missing energy or vibe letters. MAKE CARDS opens them in SORT so you can finish them by clicking.",
+    junk:"Comments that aren't your tags (download notes, old stuff). QUEUE FIXES empties them. MAKE CARDS lets you tag them instead."}[checkKind];
+  $("chk-help").textContent=help+` (${items.length})`;
+  $("chk-fix").style.display=checkKind==="incomplete"?"none":"";
+  $("chk-list").innerHTML=items.length?`<table><tr><th></th><th>TRACK</th><th>NOW</th>${checkKind==="incomplete"?"":"<th>AFTER</th>"}</tr>${items.slice(0,1500).map((i,n)=>`<tr>
+    <td><input type="checkbox" class="ck" data-i="${n}"></td><td>${esc(i.artist)} – ${esc(i.name)}</td><td>${esc(i.comment)}</td>
+    ${checkKind==="incomplete"?"":`<td><b>${esc(i.fixed||"(empty)")}</b></td>`}</tr>`).join("")}</table>`:'<div class="box">Clean. Nothing here.</div>';
+  $("chk-list")._items=items}
+function checkAll(v){document.querySelectorAll(".ck").forEach(c=>c.checked=v)}
+function picked(){const it=$("chk-list")._items||[];return [...document.querySelectorAll(".ck:checked")].map(c=>it[+c.dataset.i])}
+function checkFix(){const p=picked();if(!p.length)return toast("Tick some rows first.");
+  for(const i of p)if(!queuedFixes.some(q=>q.trackid===i.trackid))queuedFixes.push({trackid:i.trackid,comment:i.fixed||""});
+  toast(`${p.length} fixes queued. They burn with your next import (SAVE).`);beep(SFX.keep)}
+async function checkToCards(){const p=picked();if(!p.length)return toast("Tick some rows first.");
+  const s=await api("/api/session/from_tracks",{trackids:p.map(i=>i.trackid),name:"Crate "+checkKind+" "+new Date().toLocaleDateString()});beep(SFX.keep);openSession(s.id)}
+
+/* ======================================================= desk */
+let DK=null, dkSetupKey="", dkCapture=false;
+async function pollDesk(){try{DK=await api("/api/desk")}catch(e){return}renderDesk()}
+function renderDesk(){
+  if(!DK)return;
+  // setup box: only re-render when something structural changed (keeps the dropdown usable)
+  const {gain_db,...cfgNoGain}=DK.cfg||{};
+  const key=JSON.stringify([DK.available,DK.on,cfgNoGain,DK.install,DK.capture,DK.devices.length,DK.why]);
+  if(key!==dkSetupKey&&!(document.activeElement&&["desk-dev","desk-gain"].includes(document.activeElement.id))){
+    dkSetupKey=key;let h="";
+    if(!DK.available){
+      h=`<p style="margin:0 0 10px">The desk mic needs two small extra parts (audio input + key listener). One click, about a minute.</p>
+      <button class="btn dark" ${DK.install==="installing"?"disabled":""} onclick="deskInstall()">${DK.install==="installing"?"INSTALLING…":"INSTALL DESK PARTS"}</button>
+      ${DK.install&&DK.install!=="installing"?`<p>${esc(DK.install)}</p>`:""}`;
+    }else{
+      const devs=DK.devices||[];
+      h=`<div class="mono" style="font-size:8px;margin-bottom:4px">INPUT</div>
+      <select id="desk-dev" style="width:100%" ${DK.on?"disabled":""}>${devs.map(d=>`<option value="${d.index}" ${d.index==DK.cfg.device?"selected":""}>${esc(d.name)} · ${esc(d.api)}</option>`).join("")}</select>
+      <div style="margin:10px 0">CHANNEL&nbsp; <span class="seg" id="desk-ch">${[1,2].map(c=>`<button data-v="${c}" class="${(DK.cfg.channel||1)==c?"on":""}" ${DK.on?"disabled":""} onclick="deskCh(${c})">${c}</button>`).join("")}</span></div>
+      <div style="margin:10px 0">BOOST&nbsp; <input type="range" id="desk-gain" min="0" max="40" step="1" value="${DK.cfg.gain_db||0}" style="width:150px;vertical-align:middle;border:none;padding:0" oninput="deskGain(this.value)"> <b id="desk-gain-v">+${DK.cfg.gain_db||0} dB</b></div>
+      <div style="margin:10px 0">TALK KEY&nbsp; <span class="pill" style="font-size:10px">${esc((DK.cfg.key||"ctrl_r").toUpperCase())}</span>
+        <button class="btn sm" onclick="deskKey()" ${DK.on?"":"disabled"}>${DK.capture?"PRESS A KEY…":"CHANGE"}</button></div>
+      <button class="btn ${DK.on?"":"dark"}" onclick="deskPower()">${DK.on?"SWITCH OFF":"SWITCH ON"}</button>
+      ${DK.why?`<p class="muted">${esc(DK.why)}</p>`:""}`;
+    }
+    $("desk-setup").innerHTML=h;
+  }
+  const key2=(DK.cfg.key||"ctrl_r").toUpperCase().replace("_R"," RIGHT").replace("_L"," LEFT");
+  $("desk-lamp").textContent=!DK.on?"OFF":DK.rec?"● REC":"READY";
+  $("desk-big").style.background=DK.rec?"var(--berry)":"";
+  $("desk-hint").innerHTML=!DK.available?"Install the desk parts first.":!DK.on?"Switch the mic on.":DK.capture?"Press the key you want to use…":`HOLD <b>${esc(key2)}</b> AND TALK<br><span style="font-size:16px">let go when you're done</span>`;
+  const db=DK.level>0?20*Math.log10(DK.level):-90;$("desk-meter").style.width=Math.max(0,Math.min(100,(db+60)/60*100))+"%";
+  $("desk-db").textContent=DK.on?`LEVEL ${DK.rms_db>-100?DK.rms_db:"–∞"} dB · PEAK ${DK.peak_db>-100?DK.peak_db:"–∞"} dB`:"";
+  $("desk-warn").textContent=!DK.on?"":DK.peak>0.97?"CLIPPING: TURN BOOST OR GAIN DOWN":db<-58?"NO SIGNAL? CHECK INPUT 1, 48V, GAIN":(DK.rec&&DK.peak_db<-30)?"QUIET: TURN UP BOOST (CLIPS GET LEVELLED BEFORE TRANSCRIBING ANYWAY)":"";
+  $("desk-busy").textContent=DK.busy?`· writing down ${DK.busy} note${DK.busy>1?"s":""}…`:"";
+  if(DK.inbox_n!==dkInboxN){dkInboxN=DK.inbox_n;loadInbox()}
+  if(dkCapture&&!DK.capture){dkCapture=false;toast("Talk key set: "+key2);beep(SFX.keep)}
+}
+async function deskInstall(){await api("/api/desk/install",{});toast("Installing… keep the window open.");pollDesk()}
+async function deskPower(){beep(SFX.tick);
+  if(DK.on){DK=await api("/api/desk/stop",{});}
+  else{const dev=$("desk-dev")?+$("desk-dev").value:DK.cfg.device;
+    DK=await api("/api/desk/start",{device:dev,channel:DK.cfg.channel||1,key:DK.cfg.key||"ctrl_r"});toast("Desk mic on. It keeps listening for the key even when this window is closed.",4000)}
+  dkSetupKey="";renderDesk()}
+document.addEventListener("change",e=>{if(e.target.id==="desk-dev"&&DK){DK.cfg.device=+e.target.value}});
+function deskCh(c){DK.cfg.channel=c;dkSetupKey="";renderDesk()}
+async function deskKey(){await api("/api/desk/key",{});dkCapture=true;pollDesk()}
+let dkInboxN=-1, IB=[], ibSel=new Set(), ibLastLen=-1, gainT=null;
+function deskGain(v){$("desk-gain-v").textContent="+"+v+" dB";DK.cfg.gain_db=+v;clearTimeout(gainT);gainT=setTimeout(()=>api("/api/desk/gain",{gain_db:+v}),150)}
+async function loadInbox(){IB=await api("/api/inbox");renderInbox()}
+function today(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function renderInbox(){
+  if(!IB.length){$("inbox").innerHTML='<span class="muted">No notes yet. Hold the key and talk.</span>';return}
+  let h="",day="";
+  for(const i of IB.slice().reverse()){
+    if(i.day!==day){day=i.day;h+=`<div class="mono" style="font-size:8px;margin:8px 0 2px">${day===today()?"TODAY":day.split("-").reverse().join(".")}</div>`}
+    h+=`<div class="item" style="align-items:flex-start;padding:4px 6px;${i.used?"opacity:.55":""}">
+      <input type="checkbox" ${ibSel.has(i.id)?"checked":""} onchange="ibToggle('${i.id}',this.checked)" style="width:20px;height:20px;margin-top:2px">
+      <span class="mono" style="font-size:7px;padding-top:6px">${esc(i.t.slice(0,5))}${i.src==="phone"?"<br>PHONE":""}${i.used?"<br>SORTED":""}</span>
+      <span class="nm" style="white-space:normal;cursor:text" title="Click to edit" onclick="inEdit('${i.id}')">${esc(i.text)}</span>
+      <button class="btn sm" title="Listen to the clip" onclick="inPlay('${esc(i.wav)}','${i.src||""}')">▶</button></div>`}
+  $("inbox").innerHTML=h}
+function ibToggle(id,on){on?ibSel.add(id):ibSel.delete(id)}
+function inSel(m){ibSel=new Set(IB.filter(i=>m==="today"?i.day===today():m==="unused"?!i.used:false).map(i=>i.id));renderInbox();beep(SFX.tick)}
+let ibAudio=null;function inPlay(w,src){if(ibAudio)ibAudio.pause();ibAudio=new Audio("/api/clip?name="+encodeURIComponent(w)+(src?"&src="+src:""));ibAudio.play().catch(()=>toast("Can't play this clip."))}
+async function inEdit(id){const i=IB.find(x=>x.id===id);const t=prompt("Fix the text of this note:",i.text);if(t===null||t.trim()===i.text)return;
+  await api("/api/inbox/edit",{id,text:t});loadInbox()}
+async function inDelete(){if(!ibSel.size)return toast("Tick some notes first.");if(!confirm(`Delete ${ibSel.size} note(s) and their audio?`))return;
+  await api("/api/inbox/delete",{ids:[...ibSel]});ibSel.clear();beep(SFX.skip);loadInbox()}
+async function inSession(){if(!ibSel.size)return toast("Tick some notes first (TODAY selects today's).");
+  const s=await api("/api/inbox/session",{ids:IB.filter(i=>ibSel.has(i.id)).map(i=>i.id)});ibSel.clear();beep(SFX.keep);
+  toast("Session made. COPY FOR CLAUDE is the next step.",3500);loadInbox();openSession(s.id)}
+setInterval(()=>{if(view==="desk"||(DK&&DK.rec))pollDesk()},300);
+setInterval(()=>{if(view!=="desk")pollDesk()},5000);
+
+/* ======================================================= level up */
+function levelUp(){$("lvl-name").textContent="LV "+S.xp.level+" · "+S.xp.title;$("lvlup").classList.add("on");beep(SFX.lvl)}
+$("lvlup").onclick=()=>$("lvlup").classList.remove("on");
+
+/* ======================================================= pad + keys */
+function pad(k){
+  if($("lvlup").classList.contains("on")){$("lvlup").classList.remove("on");return}
+  if(k==="select"){show(ORDER[(ORDER.indexOf(view)+1)%ORDER.length]);beep(SFX.tick);return}
+  if(k==="start"){show("save");beep(SFX.tick);return}
+  if(view==="sort"&&sess){if(k==="left")move(-1);if(k==="right")move(1);if(k==="a")setStatus("keep");if(k==="b")setStatus("skip");
+    if(k==="up")setStars(Math.min(5,(card().rating||0)+1));if(k==="down")setStars(Math.max(0,(card().rating||0)-1));return}
+  const v=document.querySelector(".view.on");if(k==="up")v.scrollBy(0,-120);if(k==="down")v.scrollBy(0,120);
+  if(k==="left")show(ORDER[(ORDER.indexOf(view)+ORDER.length-1)%ORDER.length]);if(k==="right")show(ORDER[(ORDER.indexOf(view)+1)%ORDER.length]);
+}
+addEventListener("keydown",e=>{
+  if(e.target.matches("input,textarea,select"))return;
+  if($("lvlup").classList.contains("on")){$("lvlup").classList.remove("on");return}
+  if(view!=="sort"||!sess||!card())return;
+  const k=e.key,c=card();
+  if(k==="ArrowLeft")return move(-1);if(k==="ArrowRight")return move(1);
+  if(k==="Enter")return setStatus("keep");if(k==="Delete")return setStatus("skip");
+  if(/^[0-5]$/.test(k)&&!e.shiftKey){c.rating=+k;beep(SFX.tick);dirty();return renderSort()}
+  const L=k.length===1?k.toUpperCase():"";
+  if(!L)return;
+  if(ENERGY.includes(L)){const i=c.tags.energy.findIndex(x=>x[0]===L);
+    if(i<0)c.tags.energy.push([L,e.shiftKey&&L==="P"?"+":""]);else c.tags.energy.splice(i,1);}
+  else{const g=VIBE.includes(L)?"vibe":ELEM.includes(L)?"elem":ROLE.includes(L)?"role":null;if(!g)return;
+    const d=c.tags[g];const strong=e.shiftKey&&L!=="@"&&L!=="$";
+    if(strong)d[L]=d[L]==="!"?"":"!";else if(L in d)delete d[L];else d[L]=""}
+  e.preventDefault();beep(SFX.tick);dirty();renderSort()});
+
+/* ======================================================= boot */
+setInterval(()=>{$("clock").textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})},1000);
+poll();setInterval(poll,2500);
+</script>
+</body>
+</html>
