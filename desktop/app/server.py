@@ -700,6 +700,7 @@ class H(BaseHTTPRequestHandler):
                 return self.send({"version": VERSION})
             if u.path == "/api/state":
                 STATE["ping"] = time.time()
+                STATE["bye"] = False
                 lib = library()
                 h = STATE["health"]
                 files = []
@@ -804,6 +805,9 @@ class H(BaseHTTPRequestHandler):
                 if not info.get("private"):
                     return self.send({"error": "That repo is PUBLIC. Use the private crate-boy-data."}, 400)
                 LINK["now"] = True
+                return self.send({"ok": True})
+            if u.path == "/api/bye":
+                STATE["bye"] = True
                 return self.send({"ok": True})
             if u.path == "/api/link/sync":
                 LINK["now"] = True
@@ -985,10 +989,15 @@ def open_window(url):
 
 
 def watchdog():
+    """Quit only when the window was really closed (it says goodbye), or after 30 min without any sign of it.
+    A minimized window pings rarely (the browser slows it down), so a short timeout would kill the phone sync."""
     while True:
         time.sleep(15)
         busy = STATE["job"].get("state") in ("loading", "running") or DESK.on or DESK_STATE["busy"] or LINK["busy"] or PHONE_Q
-        if not busy and time.time() - STATE["ping"] > 90:
+        quiet = time.time() - STATE["ping"]
+        if busy:
+            continue
+        if (STATE.get("bye") and quiet > 20) or quiet > 1800:
             log("window closed, quitting")
             os._exit(0)
 

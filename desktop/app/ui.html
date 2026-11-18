@@ -767,6 +767,7 @@ addEventListener("keydown",e=>{
 /* ======================================================= boot */
 setInterval(()=>{$("clock").textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})},1000);
 poll();setInterval(poll,2500);
+addEventListener("pagehide",()=>{try{navigator.sendBeacon("/api/bye","{}")}catch(e){}});
 </script>
 </body>
 </html>
