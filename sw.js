@@ -1,5 +1,5 @@
 // App shell cache: network first, cache as fallback. GitHub API calls are never cached.
-const CACHE = "crateboy-pocket-v4";
+const CACHE = "crateboy-pocket-v5";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./app.js?v=4", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
