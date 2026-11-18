@@ -970,6 +970,18 @@ class H(BaseHTTPRequestHandler):
             self.send({"error": str(ex)}, 500)
 
 
+class ExclusiveServer(ThreadingHTTPServer):
+    """Windows lets a second program bind the same port when SO_REUSEADDR is on (Python's default for
+    HTTP servers). Then an old Crate Boy keeps answering the window. Claim the port exclusively instead."""
+    allow_reuse_address = False
+
+    def server_bind(self):
+        import socket
+        if os.name == "nt" and hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 def open_window(url):
     if os.environ.get("CRATEBOY_NO_BROWSER"):
         return
@@ -1005,9 +1017,9 @@ def watchdog():
 def main():
     url = f"http://127.0.0.1:{PORT}/"
     srv = None
-    for attempt in range(2):
+    for attempt in range(6):
         try:
-            srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
+            srv = ExclusiveServer(("127.0.0.1", PORT), H)
             break
         except OSError:
             # Something is already running. Same version: just show its window.
@@ -1017,7 +1029,7 @@ def main():
                 v = json.load(urllib.request.urlopen(url + "api/version", timeout=3)).get("version")
             except Exception:
                 v = None
-            if v == VERSION or attempt == 1:
+            if v == VERSION or attempt == 5:
                 open_window(url)
                 return
             try:
