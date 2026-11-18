@@ -694,6 +694,9 @@ class H(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         q = {k: v[0] for k, v in parse_qs(u.query).items()}
         try:
+            if u.path in ("/icon.png", "/favicon.ico"):
+                f = APP / ("icon.png" if u.path == "/icon.png" else "crateboy.ico")
+                return self.send(f.read_bytes(), ctype="image/png" if f.suffix == ".png" else "image/x-icon")
             if u.path in ("/", "/index.html"):
                 return self.send((APP / "ui.html").read_bytes(), ctype="text/html; charset=utf-8")
             if u.path == "/api/version":

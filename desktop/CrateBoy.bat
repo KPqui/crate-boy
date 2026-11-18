@@ -71,6 +71,8 @@ copy /y "requirements.txt" "%VENV%\.req" >nul
 :run
 start "" "%VENV%\Scripts\pythonw.exe" server.py
 cd /d "%~dp0"
+rem a "Crate Boy" shortcut with the icon, to pin to the taskbar or drag to the desktop
+if not exist "Crate Boy.lnk" powershell -NoProfile -ExecutionPolicy Bypass -Command "$s=(New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path (Get-Location) 'Crate Boy.lnk')); $s.TargetPath=(Join-Path (Get-Location) 'CrateBoy.bat'); $s.WorkingDirectory=(Get-Location).Path; $s.IconLocation=(Join-Path (Get-Location) 'app\crateboy.ico'); $s.WindowStyle=7; $s.Save()" >nul 2>nul
 if exist "CrateBoy.new.bat" (
   fc /b "CrateBoy.new.bat" "CrateBoy.bat" >nul 2>nul && del "CrateBoy.new.bat"
   if exist "CrateBoy.new.bat" start "" /min cmd /c "timeout /t 2 >nul & move /y CrateBoy.new.bat CrateBoy.bat >nul"
