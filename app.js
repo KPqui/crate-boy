@@ -2,7 +2,7 @@
    Audio is kept in the phone's own storage (IndexedDB) until it has reached the private inbox on GitHub.
    No legend or word lists live in this public code: they're loaded from the private repo after connecting. */
 "use strict";
-const APP_VERSION = "1.0";
+const APP_VERSION = "1.1";
 const CFG_KEY = "cb-cfg", LEG_KEY = "cb-legend";
 const PART_MS = +(localStorage.getItem("cb-part-ms") || 5 * 60 * 1000), SLICE_MS = 5000, MIN_NOTE_MS = 600;
 const $ = s => document.querySelector(s);
@@ -280,7 +280,8 @@ async function render(){
   const unsent = notes.filter(n => n.status !== "sent").length + sets.reduce((a, s) => a + s.parts.filter(p => !p.sent).length, 0);
   $("#qn").textContent = unsent ? "(" + unsent + ")" : "";
   const when = iso => { const d = new Date(iso); return d.toLocaleDateString([], { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); };
-  $("#recent").innerHTML = notes.slice(0, 6).map(n => `<div class="it"><span class="k">NOTE</span><span class="m">${when(n.recordedAt)} · ${(n.dur / 1000).toFixed(0)} s</span><span class="s">${n.status === "sent" ? "SENT ✓" : "WAITING"}</span></div>`).join("") || '<p class="muted">No notes yet.</p>';
+  const today = new Date().toDateString(), nToday = notes.filter(n => new Date(n.recordedAt).toDateString() === today);
+  $("#last-note").textContent = nToday.length ? `${nToday.length} today · ${nToday.filter(n => n.status !== "sent").length ? "sending…" : "all sent ✓"}` : "";
   $("#sets").innerHTML = sets.map(s => {
     const sent = s.parts.filter(p => p.sent).length;
     const act = s.state === "interrupted" ? `<button class="btn sm dark" onclick="setStart('${s.id}')">RESUME</button>` : "";
@@ -296,10 +297,13 @@ async function render(){
 }
 function renderLegend(){
   const L = S.legend;
-  if (!L){ $("#legend").innerHTML = "<h2>LEGEND</h2><p>Connect in SETUP to load your legend from the private repo.</p>"; $("#b-legend").innerHTML = ""; return; }
+  if (!L){ $("#legend").innerHTML = "<h2>LEGEND</h2><p>Connect in SETUP to load your legend from the private repo.</p>"; $("#b-legend").innerHTML = "";
+    $("#t-legend").innerHTML = '<p class="muted" style="font-size:14px">Your legend shows up here once you\'re connected (SETUP).</p>'; return; }
   const groups = [["ENERGY", L.order.energy], ["VIBE", L.order.vibe], ["ELEMENTS", L.order.elem], ["ROLE", L.order.role]];
   $("#legend").innerHTML = "<h2>LEGEND</h2>" + groups.map(([g, o]) => `<h3>${g}</h3>` + [...o].map(c => `<div class="l"><b>${esc(c)}</b><span>${esc(L.legend[c] || "")}</span></div>`).join("")).join("") +
     `<h3>WRITING</h3><p>- = from … to … · &amp; = both at once · + = stronger · ! = very (rare)</p>`;
+  $("#t-legend").innerHTML = groups.map(([g, o]) => `<h3>${g}</h3>` + [...o].map(c => `<div class="l" onclick="toast('${esc(c)} = ${esc((L.legend[c] || "").replace(/'/g, "’"))}')"><b>${esc(c)}</b><span>${esc(L.legend[c] || "")}</span></div>`).join("")).join("") +
+    `<p>- from … to … · &amp; both at once · + stronger · ! very (rare)</p>`;
   $("#b-legend").innerHTML = groups.map(([g, o]) => [...o].map(c => `<div><b>${esc(c)}</b>${esc(L.short && L.short[c] || L.legend[c] || "")}</div>`).join("")).join("");
 }
 

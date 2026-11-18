@@ -34,12 +34,21 @@ p{margin:6px 0;font-size:14px;line-height:1.35}
 input{font:15px var(--px);width:100%;padding:10px;border:3px solid var(--g0);background:#a8c816;color:var(--g0);margin:4px 0 8px}
 label{font-size:12px;font-weight:700}
 .talk{display:flex;flex-direction:column;align-items:center;gap:16px;padding:10px 0}
-#hold{width:min(70vw,280px);aspect-ratio:1;border-radius:50%;border:6px solid var(--g0);background:var(--berry);color:#fff;font:700 20px var(--px);
-  box-shadow:inset -10px -12px 0 #5d1233,6px 6px 0 var(--g1);touch-action:none;user-select:none;-webkit-user-select:none}
-#hold.rec{background:#e0204a;box-shadow:0 0 0 10px rgba(224,32,74,.35),inset -10px -12px 0 #8f1f4f;animation:pulse 1s infinite}
-@keyframes pulse{50%{box-shadow:0 0 0 22px rgba(224,32,74,.12),inset -10px -12px 0 #8f1f4f}}
-#hold-t{font-size:22px;font-weight:700;min-height:28px}
-.meter{height:12px;border:3px solid var(--g0);width:min(70vw,280px);background:var(--g3)}
+#v-talk.on{display:flex;flex-direction:column;min-height:calc(100dvh - 120px)}
+.tl{flex:1;columns:2;column-gap:10px;font-size:14px}
+.tl h3{font-size:11px;margin:8px 0 3px;letter-spacing:1px;column-span:all}
+.tl .l{display:flex;gap:7px;align-items:center;padding:3px 0;break-inside:avoid;border-bottom:1px solid var(--g2)}
+.tl .l b{min-width:22px;text-align:center;background:var(--g0);color:var(--g3);font-size:14px;padding:1px 0}
+.tl .l span{font-size:12px;line-height:1.15}
+.tl p{column-span:all;font-size:11px;margin:8px 0 0}
+.talkbar{position:sticky;bottom:0;background:var(--g3);padding:10px 0 4px;border-top:3px solid var(--g0);margin-top:8px}
+#hold{width:100%;height:110px;border-radius:18px;border:5px solid var(--g0);background:var(--berry);color:#fff;font:700 20px var(--px);margin-top:8px;
+  box-shadow:inset -8px -10px 0 #5d1233,4px 4px 0 var(--g1);touch-action:none;user-select:none;-webkit-user-select:none}
+#hold.rec{background:#e0204a;box-shadow:0 0 0 8px rgba(224,32,74,.35),inset -8px -10px 0 #8f1f4f;animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 16px rgba(224,32,74,.12),inset -8px -10px 0 #8f1f4f}}
+#hold-t{font-size:16px;font-weight:700}
+#last-note{font-size:11px}
+.meter{height:10px;border:3px solid var(--g0);width:100%;background:var(--g3)}
 .meter i{display:block;height:100%;width:0;background:var(--g0)}
 .list .it{border:3px solid var(--g0);padding:8px;margin-bottom:8px;display:flex;gap:8px;align-items:center;font-size:13px}
 .it .k{font-weight:700;font-size:11px;min-width:42px}
@@ -78,13 +87,12 @@ label{font-size:12px;font-weight:700}
   <div id="resume"></div>
 
   <section class="view on" id="v-talk">
-    <div class="talk">
-      <p class="muted" style="text-align:center">Hold, say the track name and what you hear, let go.</p>
-      <button id="hold">HOLD<br>TO TALK</button>
-      <div id="hold-t"></div>
+    <div id="t-legend" class="tl"></div>
+    <div class="talkbar">
+      <div class="row" style="justify-content:space-between;margin-bottom:6px"><span id="hold-t">&nbsp;</span><span id="last-note" class="muted"></span></div>
       <div class="meter"><i id="lvl"></i></div>
+      <button id="hold">HOLD TO TALK</button>
     </div>
-    <div class="box"><h2>LAST NOTES</h2><div class="list" id="recent"></div></div>
   </section>
 
   <section class="view" id="v-set">
@@ -130,6 +138,6 @@ label{font-size:12px;font-weight:700}
   <div class="bb"><button id="b-pause">PAUSE</button><button class="stop" id="b-stop">■ STOP SET</button></div>
 </div>
 <div id="toast"></div>
-<script src="app.js?v=1"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>
