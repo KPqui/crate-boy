@@ -2,7 +2,7 @@
    Audio is kept in the phone's own storage (IndexedDB) until it has reached the private inbox on GitHub.
    No legend or word lists live in this public code: they're loaded from the private repo after connecting. */
 "use strict";
-const APP_VERSION = "1.1";
+const APP_VERSION = "1.2";
 const CFG_KEY = "cb-cfg", LEG_KEY = "cb-legend";
 const PART_MS = +(localStorage.getItem("cb-part-ms") || 5 * 60 * 1000), SLICE_MS = 5000, MIN_NOTE_MS = 600;
 const $ = s => document.querySelector(s);
@@ -332,6 +332,10 @@ $("#b-pause").onclick = setPause; $("#b-stop").onclick = setStop;
 $("#send-now").onclick = () => { sendAll(); toast("Sending…"); };
 $("#clear-sent").onclick = clearSent;
 $("#s-save").onclick = saveSetup;
+/* The grow app (tank-log) runs on the same site, so its saved key can be reused without copying it. */
+const growKey = (load("tanklog-cfg") || {}).token;
+if (growKey){ $("#s-grow").style.display = "block";
+  $("#s-grow").onclick = () => { $("#s-token").value = growKey; saveSetup(); }; }
 if (S.cfg){ $("#s-owner").value = S.cfg.owner; $("#s-repo").value = S.cfg.repo; $("#s-token").placeholder = "saved · paste a new one to replace"; }
 $("#s-ver").textContent = "Crate Boy Pocket " + APP_VERSION + " · " + (MIME || "no recorder support in this browser");
 window.addEventListener("online", sendAll);
